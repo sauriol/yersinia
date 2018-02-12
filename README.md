@@ -3,12 +3,11 @@
 Spanning Tree
 -------------
 
-#1: DOS attack sending conf BPDUs
+### #1: DOS attack sending conf BPDUs ###
 
-    Let's send some conf BPDUs claiming be root!!! By sending continously conf BPDU with root pathcost 0, randomly
-    generated bridge id (and therefore the same root id), and some default values for other fields, we try to 
-    annoy the switches close to us, causing a DoS when trying to parse and recalculate their STP engines.
+Let's send some conf BPDUs claiming be root!!! By sending continously conf BPDU with root pathcost 0, randomly generated bridge id (and therefore the same root id), and some default values for other fields, we try to annoy the switches close to us, causing a DoS when trying to parse and recalculate their STP engines.
 
+```
     Source MAC: randomly generated.
     Destination MAC: 01:80:c2:00:00:00
     Bridge ID: 8000:source_mac
@@ -35,14 +34,13 @@ Spanning Tree
     01:20:26: STP: VLAN0001 heard root 32768-b16b.c428.88a3 on Fa0/8
     01:20:26: STP: VLAN0001 heard root 32768-dd01.1436.9044 on Fa0/8
     </output>
+```
 
+### #2: DOS attack sending tcn BPDUs ###
 
-#2: DOS attack sending tcn BPDUs
+This attack sends continously tcn BPDUs causing the root switch to send conf BPDUs acknowledging the change. Besides, the root switch will send topology change notifications to the members of the tree, and they will have to recalculate their STP engine to learn the new change.
 
-    This attack sends continously tcn BPDUs causing the root switch to send conf BPDUs acknowledging the change. 
-    Besides, the root switch will send topology change notifications to the members of the tree, and they will
-    have to recalculate their STP engine to learn the new change.
-
+```
     Source MAC: randomly generated.
     Destination MAC: 01:80:c2:00:00:00
 
@@ -66,13 +64,14 @@ Spanning Tree
     01:35:39: STP: VLAN0001 Topology Change rcvd on Fa0/8
     01:35:39: STP: VLAN0001 Topology Change rcvd on Fa0/8
     </output>
+```
 
 
-#3: NONDOS attack Claiming Root Role
+### #3: NONDOS attack Claiming Root Role ###
 
-    Now our aim is to get the root role of the tree. How can we accomplish this issue? Just listening to the network
-    to find out which one is the root role, and start sending conf BPDU with lower priority to become root.
+Now our aim is to get the root role of the tree. How can we accomplish this issue? Just listening to the network to find out which one is the root role, and start sending conf BPDU with lower priority to become root.
 
+```
     Source MAC: same one as the sniffed BPDU.
     Destination MAC: same one as the sniffed BPDU.
     Bridge ID: the sniffed one slightly modified to have a lower priority
@@ -87,18 +86,19 @@ Spanning Tree
     01:58:48:     supersedes 32769-000e.84d5.2280
     01:58:48: STP: VLAN0001 new root is 32769, 000e.84d4.2280 on port Fa0/8, cost 19
     </output>
+```
 
 
-#4 NONDOS attack Claiming a non-root role
+### #4 NONDOS attack Claiming a non-root role ###
 
-   We pretend to be another weird switch playing with STP and praising our root id :)
+We pretend to be another weird switch playing with STP and praising our root id :)
 
 
-#5 DOS attack causing eternal root elections
+### #5 DOS attack causing eternal root elections ###
 
-    By sending config BPDUs autodecrementing their priority, we can cause infinite root elections in the STP tree.
-    It would be something similar to recount the election's votes to determine the winner (do you remember Florida?)
+By sending config BPDUs autodecrementing their priority, we can cause infinite root elections in the STP tree. It would be something similar to recount the election's votes to determine the winner (do you remember Florida?)
 
+```
     <output from the cisco log>
     00:20:21: STP: VLAN0001 heard root 32769-000e.84d4.2280 on Fa0/9
     00:20:21:     supersedes 32769-000e.84d5.2280
@@ -131,14 +131,14 @@ Spanning Tree
     00:20:39:     supersedes 32769-000e.84cc.2280
     00:20:39: STP: VLAN0001 new root is 32769, 000e.84cb.2280 on port Fa0/9, cost 19
     </output>
+```
 
 
-#6 DOS Attack causing root dissapearance
+### #6 DOS Attack causing root dissapearance ###
 
-    This time we try to exhaust the root election proccess. We manage to become root in the STP tree,
-    but we stop sending config BPDUs until it reaches max_age seconds (usually 20), forcing a new 
-    election proccess.
+This time we try to exhaust the root election proccess. We manage to become root in the STP tree, but we stop sending config BPDUs until it reaches max_age seconds (usually 20), forcing a new election proccess.
 
+```
     <output from the cisco log>
     02:02:43: STP: VLAN0001 heard root 32769-000e.84d4.2280 on Fa0/9
     02:02:43:     supersedes 32769-000e.84d5.2280
@@ -173,6 +173,7 @@ Spanning Tree
     02:03:42: STP: VLAN0001 sent Topology Change Notice on Fa0/9
     02:03:44: STP: VLAN0001 we are the spanning tree root
     </output>
+```
 
 
 Mitigations (Cisco only)
@@ -225,10 +226,9 @@ Other attack implemented in the current code is the ability to set up a new
 virtual Cisco device that it is designated only for make a little mess, trying
 to confuse network administrators.
 
-Screenshot of the attack running:
-
 Output of a Cisco 2503 router:
 
+```
 athens#sh mem
                Head   Total(b)    Used(b)    Free(b)  Lowest(b) Largest(b)
 Processor     4873C    3893444    3893444          0          0          0
@@ -255,18 +255,22 @@ I/O          400000    2097152    2097088         64         64         64
 -Process= "CDP Protocol", ipl= 0, pid= 9
 -Traceback= 314E8A4 314FA06 3201B46 32016C8
 </log>
+```
 
 And a couple of minutes later after killing the attack, the router surprisingly gets halted for several seconds, 
 and then kicks you out of the terminal :)
 
+```
 <log>
 %SYS-3-CPUHOG: Task ran for 16884 msec (69/69), Process = Exec, PC = 3158D42
 -Traceback= 3158CEE 3158D4A 30F7330 30F742A 30FF3A4 30FEF76 30FEF1C 3116860
 </log>
+```
 
 
 Output of a Cisco 2950 switch:
 
+```
 00:06:08: %SYS-2-MALLOCFAIL: Memory allocation of 224 bytes failed from 0x800118D0, alignment 0
 Pool: Processor  Free: 0  Cause: Not enough free memory
 Alternate Pool: I/O  Free: 32  Cause: Not enough free memory
@@ -309,5 +313,6 @@ Alternate Pool: I/O  Free: 32  Cause: Not enough free memory
 00:06:50:  ../src-calhoun/strata_stats.c at line 137: can't not push event list
 00:06:59: %SYS-3-CPUHOG: Task ran for 2076 msec (11/10), process = Net Background, PC = 801ABD40.
 -Traceback= 801ABD48 801D932C 801D9318
+```
 
 And then, the CDP process is totally down, even when we stop the attack. No more CDP babies...
